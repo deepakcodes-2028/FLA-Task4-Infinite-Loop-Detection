@@ -1,45 +1,101 @@
-# LoopScope – Infinite-Loop Detection in Software
+# LoopScope: Proof-Carrying Infinite-Loop Analysis
 
-### Course: 21CSC301T – Formal Language and Automata
-**Assessment:** CLA-2 – Assessment Task 4 (Team Work)
-
-**Selected Problem:** Infinite-Loop Detection in Software
-
+**Course:** 21CSC301T - Formal Language and Automata  
+**Assessment:** CLA-2, Assessment Task 4 (Team Work)  
+**Selected problem:** Infinite-loop detection in software  
 **Institution:** SRM Institute of Science and Technology, Tiruchirappalli
 
----
+LoopScope is an original teaching prototype that demonstrates the boundary between the undecidable general halting problem and restricted program analyses that can provide sound answers. It accepts a small Python-like language (MiniLoop) and returns one of three outcomes:
 
-## Project Overview
+- `HALTS`: a supported static proof or a completed execution establishes termination.
+- `LOOPS`: a supported static argument or repeated deterministic machine configuration establishes nontermination.
+- `UNKNOWN`: the implemented rules cannot prove either result within the execution budget.
 
-**LoopScope** is an original Python-based educational prototype that demonstrates the boundary between the undecidable general Halting Problem and restricted program analyses that can provide sound answers.
-
-The application accepts programs written in a small Python-like language called **MiniLoop** and analyses whether a program terminates or continues indefinitely.
-
-The tool produces one of three possible outcomes:
-
-| Outcome | Description |
-|---|---|
-| `HALTS` | A supported static proof or completed execution establishes termination. |
-| `LOOPS` | A supported static argument or repeated deterministic machine configuration establishes nontermination. |
-| `UNKNOWN` | The implemented analysis rules cannot prove either result within the execution budget. |
-
-LoopScope deliberately does not claim to decide arbitrary programs. Its static analysis handles selected single-counter loops, while its runtime analysis handles finite executions and repeated machine configurations.
-
-A growing state that never repeats may remain `UNKNOWN`.
+The tool deliberately does **not** claim to decide arbitrary programs. The static stage handles selected single-counter loops; the runtime stage handles finite executions and repeated configurations. A growing state that never repeats may remain `UNKNOWN`.
 
 ## Features
 
-1. **MiniLoop Parser and Compiler:** Supports assignments, integer arithmetic, `while`, `if/else`, `break`, and `pass`.
-2. **Static Termination Analysis:** Provides proofs using monotone ranking functions, recurrent counter conditions, constant-step `!=` reachability, and simple constant guards.
-3. **Configuration-Cycle Detection:** Executes a deterministic register machine and detects repeated complete configurations.
-4. **Fixed-Width Register Mode:** Supports unsigned registers from 1 to 32 bits to demonstrate finite-state computation.
-5. **Turing Machine Simulator:** Includes a separate deterministic single-tape Turing machine simulator.
-6. **Diagonalisation Demonstration:** Provides a finite meta-level demonstration of why each total candidate decider is contradicted by an inverted self-input result.
-7. **Benchmarking and Experiments:** Includes a 15-program benchmark, 2,400 generated linear-loop cases, CSV exports, and Matplotlib charts.
+1. MiniLoop parser and compiler for assignments, integer arithmetic, `while`, `if/else`, `break`, and `pass`.
+2. Static proofs for monotone ranking functions, recurrent counter conditions, constant-step `!=` reachability, and simple constant guards.
+3. Deterministic register-machine execution with configuration-cycle detection.
+4. Optional fixed-width unsigned register mode (1 to 32 bits) to illustrate the finite-state case.
+5. A separate deterministic single-tape Turing-machine simulator.
+6. A finite meta-level diagonal demonstration showing why each total candidate decider is contradicted by an inverted self-input result.
+7. A 15-program benchmark, 2,400 generated linear-loop cases, CSV exports, and Matplotlib charts.
 
-## Technologies Used
+## Requirements
 
-- **Programming Language:** Python 3.10+
-- **Testing Framework:** Pytest
-- **Data Analysis and Visualisation:** Matplotlib
-- **
+- Python 3.10 or later
+- `pytest` to run tests
+- `matplotlib` to regenerate charts (optional for analysis)
+
+## Setup
+
+```bash
+python -m venv .venv
+# Windows: .venv\\Scripts\\activate
+# macOS/Linux: source .venv/bin/activate
+python -m pip install -e ".[test,plots]"
+```
+
+No third-party runtime dependency is needed by the analyser itself. Matplotlib is only used by the experiment/plot script.
+
+## Run
+
+```bash
+python -m loopscope.cli benchmark --csv results/benchmark_results.csv
+python -m loopscope.cli explain zero_sequence
+python -m loopscope.cli diagonal
+python -m loopscope.cli tm
+python -m pytest -q
+python tools/run_experiments.py
+```
+
+Analyse your own source file:
+
+```bash
+python -m loopscope.cli analyze examples/countdown.loop
+```
+
+For a bounded 8-bit unsigned machine:
+
+```bash
+python -m loopscope.cli analyze examples/wraparound.loop --fixed-bits 8
+```
+
+## MiniLoop syntax
+
+```python
+x = 10
+while x > 0:
+    x -= 1
+```
+
+Supported statements: single-name assignment, `+=`, `-=`, `*=`, `//=`, `%=`, `while`, `if/else`, `break`, and `pass`. Supported expressions: integer/Boolean literals, variable names, `+ - * // %`, unary `+ - not`, comparisons `< <= > >= == !=`, and Boolean `and/or`.
+
+Function calls, imports, attribute access, I/O, lists, and arbitrary Python statements are rejected. This keeps execution deterministic and prevents the analyser from executing arbitrary Python code.
+
+## Interpretation and limitations
+
+A repeated complete configuration `(program counter, variable store)` proves an infinite cycle only because the language is deterministic. Not all infinite executions repeat a configuration: for example, `x = 1; while x > 0: x *= 2` grows without bound and returns `UNKNOWN` after the instruction budget. A timeout is not treated as proof of a loop.
+
+The diagonal command is a finite explanatory model of the self-reference argument. It inverts each candidate prediction; it is not a practical universal program-decider or a physical implementation of a self-referential Turing machine.
+
+Fixed-width mode applies unsigned wraparound after arithmetic writes. This mode changes the mathematical model: the state space becomes finite, so a repeated configuration or halt can be reached in bounded exploration.
+
+## Repository layout
+
+```text
+loopscope/                 parser, compiler, interpreter, proof rules, TM and CLI
+ tests/                    unit and integration tests
+ tools/run_experiments.py  benchmark, generated sweep, CSVs and visualisations
+ docs/                     formal model, architecture and generated diagrams
+ results/                  benchmark CSVs, sweep CSV and charts
+ examples/                 sample MiniLoop input files
+ report/                   generated report source/deliverables
+ CONTRIBUTIONS.md          proposed member role allocation
+```
+
+## Reproducibility
+
+The output data and figures are regenerated by `python tools/run_experiments.py`. The validation suite is run with `python -m pytest -q`. The report records only results produced by this repository's code in this environment. The external reference implementation by Vaishak et al. was consulted for assignment scope and report organisation; the implementation in this repository is independently written and has a different language subset, module structure, benchmark, and experiments.

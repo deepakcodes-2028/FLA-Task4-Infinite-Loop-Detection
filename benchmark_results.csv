@@ -1,0 +1,16 @@
+program,category,expected,loopscope,method,steps,timeout_baseline,note
+countdown,ranking,HALTS,HALTS,static-proof,0,HALTS,A positive counter decreases toward zero.
+stride_up,ranking,HALTS,HALTS,static-proof,0,HALTS,The counter increases past a fixed upper bound.
+wrong_direction,recurrent,LOOPS,LOOPS,static-proof,0,LOOPS_GUESS,The update moves away from the guard's exit boundary.
+fixed_gap,modular,LOOPS,LOOPS,static-proof,0,LOOPS_GUESS,"Odd values remain odd, so zero is unreachable."
+reach_zero,modular,HALTS,HALTS,static-proof,0,HALTS,The target is reached after five updates.
+unchanged_counter,cycle,LOOPS,LOOPS,static-proof,0,LOOPS_GUESS,The state is unchanged and the guard stays true.
+false_on_entry,guard,HALTS,HALTS,static-proof,0,HALTS,The loop is skipped because the initial guard is false.
+always_true,constant,LOOPS,LOOPS,static-proof,0,LOOPS_GUESS,A literal true guard has no break in its body.
+swap_cycle,cycle,LOOPS,LOOPS,configuration-cycle,14,LOOPS_GUESS,Two register values alternate and recreate a complete configuration.
+break_counter,execution,HALTS,HALTS,execution,25,HALTS,A branch exits the loop when the counter reaches five.
+double_to_limit,execution,HALTS,HALTS,execution,24,HALTS,Multiplicative growth crosses the finite bound.
+slow_finite,timeout,HALTS,HALTS,static-proof,0,LOOPS_GUESS,A long but finite loop is statically proved to terminate.
+unbounded_growth,unknown,UNKNOWN,UNKNOWN,bounded-execution,300,LOOPS_GUESS,The values grow without repeating; available proof rules do not cover it.
+zero_sequence,cycle,LOOPS,LOOPS,configuration-cycle,6,LOOPS_GUESS,The value zero is a fixed point of the even branch.
+edge_equality,ranking,HALTS,HALTS,static-proof,0,HALTS,One update makes the equality condition false.
